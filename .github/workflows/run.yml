@@ -54,7 +54,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run collector
-        run: python -m v2ray_collector run
+        run: python -m v2ray_collector 
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
