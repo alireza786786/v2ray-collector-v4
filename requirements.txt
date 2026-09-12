@@ -1,0 +1,9 @@
+# V2Ray Smart Collector v4 — وابستگی‌ها
+# نصب:  python -m pip install -r requirements.txt
+
+aiohttp>=3.9,<4
+python-dotenv>=1.0
+PyYAML>=6.0
+
+# --- فقط برای توسعه/تست ---
+pytest>=8.0
