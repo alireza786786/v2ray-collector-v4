@@ -1,0 +1,72 @@
+name: V2Ray Collector
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: v2ray-collector
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Cache Xray binary
+        uses: actions/cache@v4
+        with:
+          path: .xray_bin
+          key: xray-bin
+
+      - name: Fix package layout (self-healing)
+        run: |
+          mkdir -p v2ray_collector
+          [ -f __init__.py ] && mv __init__.py v2ray_collector/ || true
+          [ -f __main__.py ] && mv __main__.py v2ray_collector/ || true
+          [ -f cli.py ] && mv cli.py v2ray_collector/ || true
+          [ -f config.py ] && mv config.py v2ray_collector/ || true
+          [ -f database.py ] && mv database.py v2ray_collector/ || true
+          [ -f geo.py ] && mv geo.py v2ray_collector/ || true
+          [ -f models.py ] && mv models.py v2ray_collector/ || true
+          [ -f net.py ] && mv net.py v2ray_collector/ || true
+          [ -f parser.py ] && mv parser.py v2ray_collector/ || true
+          [ -f pipeline.py ] && mv pipeline.py v2ray_collector/ || true
+          [ -f scorer.py ] && mv scorer.py v2ray_collector/ || true
+          [ -f telegram.py ] && mv telegram.py v2ray_collector/ || true
+          [ -f xray_test.py ] && mv xray_test.py v2ray_collector/ || true
+          rm -f "بسته آپلود یکجا V2Ray v4.zip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run collector
+        run: python -m v2ray_collector run
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+
+      - name: Commit and push results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes — nothing to commit."
+          else
+            git commit -m "chore: update subscription files"
+            git push
+          fi
